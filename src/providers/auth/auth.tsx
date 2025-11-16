@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { sleep } from '@/lib/utils'
-import { callAuth } from '@/lib/actions'
+import { callApi, callAuth, callWhoAmI } from '@/lib/actions'
 import { RpcAuth, UserRpc } from '@/lib/jsonrpc'
 
 export const BANK_FIELDS = [
@@ -254,15 +254,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setStoredByKey(key.refreshExpiresAt, refreshExpiredTime.toString())
 
           // GET MERCHANT INFORMATION
-          RpcAuth.setAccessToken(res.access_token)
-          const UData = await UserRpc.whoami()
-          setPermission(UData['permission'][0])
-          setStoredByKey(key.permission, JSON.stringify(UData['permission'][0]))
+          // RpcAuth.setAccessToken(res.access_token)
+          console.log('res.access_token: ', res.access_token)
+          const UData = await callWhoAmI(res.access_token)
+          // setPermission(UData['permission'][0])
+          // setStoredByKey(key.permission, JSON.stringify(UData['permission'][0]))
 
-          setUserData(UData)
-          setStoredByKey(key.rootCompany, UData['root_company_id'])
-          setStoredByKey(key.userData, JSON.stringify(UData))
-          console.log('userData: ', userData)
+          // setUserData(UData)
+          // setStoredByKey(key.rootCompany, UData['root_company_id'])
+          // setStoredByKey(key.userData, JSON.stringify(UData))
+          console.log('userData: ', UData)
           console.log('permission: ', permission)
           setBankAccount(
             userData?.root_banks[0].acc_object.account_number ?? '',

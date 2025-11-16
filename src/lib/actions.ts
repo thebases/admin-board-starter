@@ -2,12 +2,14 @@
 import axios, { type AxiosResponse } from 'axios'
 
 const basePath =
-  import.meta.env.NEXT_PUBLIC_API_GW_URL || 'https://api.base.biz'
-const erpPath = import.meta.env.NEXT_PUBLIC_API_ERP_PATH || '/mp'
-const oapiPath = import.meta.env.NEXT_PUBLIC_API_OAPI_PATH || '/oapi'
-const bapiPath = import.meta.env.NEXT_PUBLIC_API_BAPI_PATH || '/bapi'
-const reportPath = import.meta.env.NEXT_PUBLIC_API_REPORT_PATH || '/report'
-const authPath = import.meta.env.NEXT_PUBLIC_API_BASE_ERP_PATH || '/auth/token'
+  import.meta.env.VITE_API_GW_URL || 'http://localhost:8181'
+const mdmPath = import.meta.env.VITE_API_MDM_PATH || '/mdm'
+// const oapiPath = import.meta.env.NEXT_PUBLIC_API_OAPI_PATH || '/oapi'
+// const bapiPath = import.meta.env.NEXT_PUBLIC_API_BAPI_PATH || '/bapi'
+// const reportPath = import.meta.env.NEXT_PUBLIC_API_REPORT_PATH || '/report'
+const authPath = import.meta.env.NEXT_PUBLIC_API_BASE_ERP_PATH || '/auth'
+
+console.log(basePath)
 
 const callApiGW = axios.create({
   baseURL: `${basePath}`,
@@ -21,6 +23,20 @@ interface TokenResponse {
   token_type?: string
   scope?: string
   session_state?: string
+}
+
+interface WhoAmIResponse{
+  
+  email: string,
+  email_verified: boolean,
+  iss: string,
+  name: string,
+  preferred_username: string,
+  realm_access: {
+    roles: string[]
+  },
+  sub: string
+
 }
 
 export async function callAuth(
@@ -41,11 +57,33 @@ export async function callAuth(
   try {
     const res: AxiosResponse<TokenResponse> = await callApiGW({
       method: 'POST',
-      url: authPath,
+      url: `${authPath}/token`,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       data: body,
+    })
+
+    if (res.status === 200) {
+      return res.data
+    }
+    console.error('Auth error:', res.status, res.data)
+    return false
+  } catch (err: any) {
+    console.error('Auth request failed:', err)
+    return false
+  }
+}
+
+export async function callWhoAmI(accessToken:string): Promise<WhoAmIResponse | boolean> {
+  
+  try {
+    const res: AxiosResponse<WhoAmIResponse> = await callApiGW({
+      method: 'GET',
+      url: `${authPath}/me`,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
     })
 
     if (res.status === 200) {
@@ -99,42 +137,6 @@ export async function callApi(
   }
 }
 
-export async function callErp(
-  accessToken: string = '',
-  path: string = '',
-  action: string = 'GET',
-  payload: any = {},
-): Promise<any> {
-  return await callApi(accessToken, `${erpPath}${path}`, action, payload)
-}
-
-export async function callOpenApi(
-  accessToken: string = '',
-  path: string = '',
-  action: string = 'GET',
-  payload: any = {},
-): Promise<any> {
-  return await callApi(accessToken, `${oapiPath}${path}`, action, payload)
-  // return await callApi(accessToken, `${path}`, action, payload)
-}
-
-export async function callBankApi(
-  accessToken: string = '',
-  path: string = '',
-  action: string = 'GET',
-  payload: any = {},
-): Promise<any> {
-  return await callApi(accessToken, `${bapiPath}${path}`, action, payload)
-}
-
-export async function callReportApi(
-  accessToken: string = '',
-  path: string = '',
-  action: string = 'GET',
-  payload: any = {},
-): Promise<any> {
-  return await callApi(accessToken, `${reportPath}${path}`, action, payload)
-}
 
 export function formDataToJson(formData: FormData): Record<string, any> {
   // Check if formData is an instance of FormData

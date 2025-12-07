@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { sleep } from '@/lib/utils'
 import { callApi, callAuth, callWhoAmI } from '@/lib/actions'
-import { RpcAuth, UserRpc } from '@/lib/jsonrpc'
+import { api } from '@/lib/api/apiClient'
 
 export const BANK_FIELDS = [
   'acc_object',
@@ -211,6 +211,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setBankName(null)
   }, [])
 
+  interface LoginResponse {
+  access_token: string;
+  id_token?:string;
+  refresh_token?: string;
+  expires_in?:number;
+  refresh_expires_in?:number
+  scope?:string
+}
+
+interface WhoAmIResponse{
+  
+  email: string,
+  email_verified: boolean,
+  iss: string,
+  name: string,
+  preferred_username: string,
+  realm_access: {
+    roles: string[]
+  },
+  sub: string
+
+}
+
   const login = React.useCallback(
     async (
       username?: string | undefined | null,
@@ -220,7 +243,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // await sleep(500)
       console.log('realm:', realm)
       if (username && password) {
-        let res = await callAuth(username, password)
+        // let res = await callAuth(username, password)
+        let res = await api.auth.token.post<LoginResponse>({
+          body: { username, password },
+        })
         if (res) {
           console.log('Auth Result:', res)
           const currentTime = Date.now()
@@ -233,21 +259,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           )
 
           //  SET TO STATE
-          console.log('username is', username)
+          // console.log('username is', username)
           setUser(username)
           setStoredUser(username)
-          console.log('setStoredUser is', getStoredUser())
-          console.log('setUser is', user)
+          // console.log('setStoredUser is', getStoredUser())
+          // console.log('setUser is', user)
           setAccessToken(res.access_token)
           setStoredByKey(key.accessToken, res.access_token)
           if (res.refresh_token) {
             setRefreshToken(res.refresh_token)
             setStoredByKey(key.refreshToken, res.refresh_token)
           }
-          if (res.session_state) {
-            setSessionState(res.session_state)
-            setStoredByKey(key.sessionState, null)
-          }
+          // if (res.session_state) {
+          //   setSessionState(res.session_state)
+          //   setStoredByKey(key.sessionState, null)
+          // }
           setExpriedAt(expiredTime.toString())
           setRefreshExpiresAt(refreshExpiredTime.toString())
           setStoredByKey(key.expriedAt, expiredTime.toString())
@@ -255,8 +281,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           // GET MERCHANT INFORMATION
           // RpcAuth.setAccessToken(res.access_token)
-          console.log('res.access_token: ', res.access_token)
-          const UData = await callWhoAmI(res.access_token)
+          // console.log('res.access_token: ', res.access_token)
+          // const UData = await callWhoAmI(res.access_token)
+          const UData = await api.auth.me.get<WhoAmIResponse>({
+            headers:{Authorization:`Bearer ${res.access_token}`}
+          })
+          //  await callWhoAmI(res.access_token)
           // setPermission(UData['permission'][0])
           // setStoredByKey(key.permission, JSON.stringify(UData['permission'][0]))
 

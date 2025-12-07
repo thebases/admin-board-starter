@@ -16,9 +16,12 @@
     "module": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],
+    
 
     /* Bundler mode */
     "moduleResolution": "bundler",
+    /* (optional but nice with bundler mode)*/
+    "moduleDetection": "force",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,

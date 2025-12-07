@@ -44,8 +44,7 @@ function LoginComponent() {
   const navigate = Route.useNavigate()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [username, setUsername] = React.useState(auth.user)
-  const [password, setPassword] = React.useState('Anhnh7383@')
-  console.log(import.meta.env.VITE_ENVIRONMENT)
+  const [password, setPassword] = React.useState('')
   React.useEffect(() => {
     if (isInitialState) {
       if (ENVIRONMENT === 'production') {
